@@ -24,6 +24,41 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test.describe('Game filters', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/');
+      await expect(page.getByTestId('game-filters')).toBeVisible();
+    });
+
+    test('should filter games by category', async ({ page }) => {
+      await page.getByLabel('Strategy').check();
+      await page.getByTestId('apply-filters').click();
+
+      await expect(page).toHaveURL(/[?&]category=/);
+      await expect(page.locator('[data-filterable-game]:visible')).toHaveCount(4);
+      await expect(page.locator('#filter-results')).toHaveText('Showing 4 games');
+    });
+
+    test('should filter games by publisher', async ({ page }) => {
+      await page.getByLabel('Publisher').selectOption({ label: 'CodeForge Studios' });
+      await page.getByTestId('apply-filters').click();
+
+      await expect(page).toHaveURL(/[?&]publisher=/);
+      await expect(page.locator('[data-filterable-game]:visible')).toHaveCount(6);
+      await expect(page.locator('#filter-results')).toHaveText('Showing 6 games');
+    });
+
+    test('should combine category and publisher filters', async ({ page }) => {
+      await page.getByLabel('Strategy').check();
+      await page.getByLabel('Publisher').selectOption({ label: 'CodeForge Studios' });
+      await page.getByTestId('apply-filters').click();
+
+      await expect(page.locator('[data-filterable-game]:visible')).toHaveCount(1);
+      await expect(page.locator('[data-filterable-game]:visible').getByTestId('game-title')).toHaveText('DevOps Dominion');
+      await expect(page.locator('#filter-results')).toHaveText('Showing 1 game');
+    });
+  });
+
   test('should display each game rating out of five on index page', async ({ page }) => {
     await page.goto('/');
 
